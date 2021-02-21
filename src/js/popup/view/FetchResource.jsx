@@ -43,7 +43,6 @@ const FetchResource = (props) => {
 		})();
 	}, []);
 	
-	
 	const handleFetchResource = async (e) => {
 		e.preventDefault();
 		ReactGA.event({
@@ -54,10 +53,22 @@ const FetchResource = (props) => {
 			enqueueSnackbar('Hostname must be facebook.com!', { variant: 'warning' })
 			return;
 		}
+		
+		const temp = currentUrl.split('/').filter(v => v !== "");
+		let newUrl = currentUrl
+		if (temp.length === 2) {
+			enqueueSnackbar('Please add page. group, or profile name after hostname!', { variant: 'warning' })
+			return;
+		}
+		if (temp.length > 3) {
+			enqueueSnackbar('The URL has been pruned', { variant: 'warning' })
+			newUrl = temp[0] + '//' + temp[1] + '/' + temp[2]
+			setCurrentUrl(newUrl)
+		}
 		try {
 			setLoading(true);
 			const response = await chrome.runtime.sendMessage({
-				url: currentUrl
+				url: newUrl
 			})
 			if (response.type === cst.FETCH_FAIL)
 				throw { message: response.payload }
@@ -95,7 +106,7 @@ const FetchResource = (props) => {
 				label="Facebook page, profile or group URL"
 				value={currentUrl}
 				onChange={(e) => setCurrentUrl(e.target.value)}
-				helperText="Click at the button or press Enter to extract the page information"
+				helperText="Please enter the correct URL address to have the best result"
 				type="url"
 				required
 				fullWidth
